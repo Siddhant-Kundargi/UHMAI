@@ -1,0 +1,11 @@
+{
+    "pms": [
+        {
+            "name": "PM1",
+            "ip": "",
+            "cpu_capacity": 4,
+            "ram_capacity": 4,
+            "disk_capacity": 60
+        }
+    ]
+}
