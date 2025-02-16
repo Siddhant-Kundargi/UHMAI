@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Physical Machine Form -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4 text-gray-100">Add Physical Machine</h2>
+        <form id="physicalMachineForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300">CPU Cores</label>
+                <input type="number" name="cpu" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Memory (GB)</label>
+                <input type="number" name="mem" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Disk (GB)</label>
+                <input type="number" name="disk" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-300 text-gray-800 p-2 rounded hover:bg-blue-400 font-bold">
+                Add Physical Machine
+            </button>
+        </form>
+    </div>
+
+    <!-- Virtual Machine Form -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4 text-gray-100">Add Virtual Machine</h2>
+        <form id="vmForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300">CPU Cores</label>
+                <input type="number" name="cpu" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Memory (GB)</label>
+                <input type="number" name="mem" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Disk (GB)</label>
+                <input type="number" name="disk" class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-gray-100 shadow-sm p-2" required>
+            </div>
+            <button type="submit" class="w-full bg-green-300 text-gray-800 p-2 rounded hover:bg-green-400 font-bold">
+                Add Virtual Machine
+            </button>
+        </form>
+    </div>
+
+    <!-- Current Placement Display -->
+    <div id="placementDisplay" class="md:col-span-2 bg-gray-800 p-6 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4 text-gray-100">Current Placement</h2>
+        <div id="placementContent" class="space-y-4">
+            <!-- Placement data will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('physicalMachineForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    const response = await fetch('/newPhysicalMachine', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    });
+    
+    updatePlacement();
+};
+
+document.getElementById('vmForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    const response = await fetch('/newMachine', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    });
+    
+    updatePlacement();
+};
+
+async function updatePlacement() {
+    const response = await fetch('/getCurrentPlacement');
+    const data = await response.json();
+    
+    const content = document.getElementById('placementContent');
+    if (data.status === 'success') {
+        content.innerHTML = `<pre class="bg-gray-700 p-4 rounded text-gray-100">${JSON.stringify(data.placement, null, 2)}</pre>`;
+    } else {
+        content.innerHTML = `<p class="text-gray-400">${data.status}</p>`;
+    }
+}
+
+// Initial placement update
+updatePlacement();
+</script>
+{% endblock %}
