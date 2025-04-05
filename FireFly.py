@@ -2,13 +2,13 @@ import numpy as np
 
 class FireFly:
 
-    def __init__(self, machine_dict, vm_dict):
+    def __init__(self, machine_dict, vm_dict, previous_placement={}):
         if not machine_dict or not vm_dict:
             raise ValueError("Both machine_dict and vm_dict must not be empty")
         
         self.physical_machines = machine_dict
         self.vms = vm_dict
-
+        self.previous_placement = previous_placement  # Add state storage
         self.state = self.firefly_vm_placement(self.physical_machines, self.vms)
 
     def calculate_vm_fitness(self, vm_placements, physical_hosts, vms, previous_placement):
@@ -69,25 +69,53 @@ class FireFly:
             return {host_id: [] for host_id in physical_hosts}
             
         search_space = ([0] * num_vms, [num_hosts - 1] * num_vms)
-        previous_placement = None # Initialize previous placement
-
 
         def decode_firefly(firefly):
             vm_placements = {host_id: [] for host_id in physical_hosts}
+            # First, add existing placements that are still valid
+            for vm_id, host_id in self.previous_placement.items():
+                if vm_id in vms and host_id in physical_hosts:
+                    vm_placements[host_id].append(vm_id)
+            
+            # Then place new VMs
             for vm_index, host_index in enumerate(firefly):
                 vm_id = list(vms.keys())[vm_index]
-                host_id = list(physical_hosts.keys())[int(round(host_index))]
-                vm_placements[host_id].append(vm_id)
+                if vm_id not in self.previous_placement:  # Only place new VMs
+                    host_id = list(physical_hosts.keys())[int(round(host_index))]
+                    vm_placements[host_id].append(vm_id)
             return vm_placements
 
-
         best_solution, best_fitness = self.firefly_algorithm(
-            lambda x: self.calculate_vm_fitness(decode_firefly(x), physical_hosts, vms, previous_placement),
+            lambda x: self.calculate_vm_fitness(decode_firefly(x), physical_hosts, vms, self.previous_placement),
             num_fireflies, max_iterations, alpha, beta, gamma, epsilon, search_space
         )
         best_placement = decode_firefly(best_solution)
 
-        # Update for the next call (if in a loop)
-        previous_placement = {vm: host for host, vms_on_host in best_placement.items() for vm in vms_on_host}
+        # Update the class's previous_placement state
+        self.previous_placement = {vm: host for host, vms_on_host in best_placement.items() for vm in vms_on_host}
 
         return best_placement
+
+    def delete_vm(self, vm_id):
+        """
+        Deletes a VM from the placement without recalculating placement.
+        Returns True if VM was found and deleted, False otherwise.
+        """
+        # Remove from vms dictionary if it exists
+        if vm_id in self.vms:
+            del self.vms[vm_id]
+        else:
+            return False
+
+        # Remove from placement state if it exists
+        if vm_id in self.previous_placement:
+            host_id = self.previous_placement[vm_id]
+            del self.previous_placement[vm_id]
+            
+            # Also remove from current state if present
+            if host_id in self.state and vm_id in self.state[host_id]:
+                self.state[host_id].remove(vm_id)
+            
+            return True
+            
+        return False
