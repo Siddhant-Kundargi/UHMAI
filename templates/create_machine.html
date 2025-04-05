@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
+    <div class="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div class="relative px-4 py-10 bg-gray-800 shadow-lg sm:rounded-3xl sm:p-10">
+            <div class="max-w-md mx-auto">
+                <!-- Form Selection -->
+                <div class="flex justify-center space-x-4 mb-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="formSelect" value="physical" class="form-radio text-blue-300" checked>
+                        <span class="ml-2 text-gray-300">Physical Machine</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="formSelect" value="virtual" class="form-radio text-green-300">
+                        <span class="ml-2 text-gray-300">Virtual Machine</span>
+                    </label>
+                </div>
+
+                <!-- PM Form -->
+                <div id="pmFormContainer">
+                    <h2 class="text-2xl font-bold text-gray-100 mb-6">Create Physical Machine</h2>
+                    <form id="pmForm" class="space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-gray-300">CPU Cores</label>
+                            <input type="number" name="cpu" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-gray-300">Memory (GB)</label>
+                            <input type="number" name="mem" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-gray-300">Disk (GB)</label>
+                            <input type="number" name="disk" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                            Create Physical Machine
+                        </button>
+                    </form>
+                </div>
+
+                <!-- VM Form -->
+                <div id="vmFormContainer" class="hidden">
+                    <h2 class="text-2xl font-bold text-gray-100 mb-6">Create Virtual Machine</h2>
+                    <form id="vmForm" class="space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-gray-300">CPU Cores</label>
+                            <input type="number" name="cpu" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-gray-300">Memory (GB)</label>
+                            <input type="number" name="mem" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-gray-300">Disk (GB)</label>
+                            <input type="number" name="disk" required class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">
+                            Create Virtual Machine
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form toggle functionality
+document.querySelectorAll('input[name="formSelect"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        const pmContainer = document.getElementById('pmFormContainer');
+        const vmContainer = document.getElementById('vmFormContainer');
+        if (e.target.value === 'physical') {
+            pmContainer.classList.remove('hidden');
+            vmContainer.classList.add('hidden');
+        } else {
+            pmContainer.classList.add('hidden');
+            vmContainer.classList.remove('hidden');
+        }
+    });
+});
+
+// PM Form submission
+document.getElementById('pmForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        type: 'physical',
+        cpu: parseInt(formData.get('cpu')),
+        mem: parseInt(formData.get('mem')),
+        disk: parseInt(formData.get('disk'))
+    };
+    submitForm(data);
+});
+
+// VM Form submission
+document.getElementById('vmForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        type: 'virtual',
+        cpu: parseInt(formData.get('cpu')),
+        mem: parseInt(formData.get('mem')),
+        disk: parseInt(formData.get('disk'))
+    };
+    submitForm(data);
+});
+
+async function submitForm(data) {
+    try {
+        const response = await fetch('/vm/createMachine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            window.location.href = '/';
+        } else {
+            alert(result.message || 'Failed to create machine');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create machine. Please try again.');
+    }
+}
+</script>
+{% endblock %}

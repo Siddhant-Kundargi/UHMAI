@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold">VM Dashboard</h1>
+        <div class="space-x-2">
+            <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Create VM
+            </button>
+            <button onclick="openScalingModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Create Scaling Group
+            </button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- VM List Section -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-3 text-gray-100">Virtual Machines</h2>
+            <div id="vmList" class="space-y-2"></div>
+        </div>
+        
+        <!-- Placement Info Section -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-3 text-gray-100">Host Placement</h2>
+            <div id="placementInfo" class="text-gray-100"></div>
+        </div>
+        
+        <!-- VM Details Section -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-3 text-gray-100">VM Details</h2>
+            <div id="vmDetails" class="text-gray-100"></div>
+        </div>
+    </div>
+
+    <!-- Autoscaling Groups Section -->
+    <div class="mt-6 bg-gray-800 p-4 rounded-lg">
+        <h2 class="text-xl font-semibold mb-3 text-gray-100">Autoscaling Groups</h2>
+        <div id="scalingGroupsList" class="space-y-2"></div>
+    </div>
+
+    <!-- VM Creation Modal -->
+    <div id="createVMModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold text-gray-100 mb-4">Create New VM</h2>
+            <form id="createVMForm" class="space-y-4">
+                <div>
+                    <label class="text-gray-300 block mb-1">CPU Cores</label>
+                    <input type="number" name="cpu" required min="1" 
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">Memory (GB)</label>
+                    <input type="number" name="mem" required min="1"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">Disk (GB)</label>
+                    <input type="number" name="disk" required min="8"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal()" 
+                        class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Autoscaling Group Creation Modal -->
+    <div id="createScalingModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold text-gray-100 mb-4">Create Autoscaling Group</h2>
+            <form id="createScalingForm" class="space-y-4">
+                <div>
+                    <label class="text-gray-300 block mb-1">Minimum Instances</label>
+                    <input type="number" name="min_instance_count" required min="1" 
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">Maximum Instances</label>
+                    <input type="number" name="max_instance_count" required min="1"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">CPU Cores per Instance</label>
+                    <input type="number" name="cpu" required min="1"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">Memory (GB) per Instance</label>
+                    <input type="number" name="mem" required min="1"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div>
+                    <label class="text-gray-300 block mb-1">Disk (GB) per Instance</label>
+                    <input type="number" name="disk" required min="8"
+                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeScalingModal()" 
+                        class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Create Group
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    document.getElementById('createVMModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('createVMModal').classList.add('hidden');
+}
+
+function openScalingModal() {
+    document.getElementById('createScalingModal').classList.remove('hidden');
+}
+
+function closeScalingModal() {
+    document.getElementById('createScalingModal').classList.add('hidden');
+}
+
+async function loadVMs() {
+    try {
+        const response = await fetch('/vm/list');
+        const data = await response.json();
+        updatePlacementInfo(data.placement); // now refreshes placement info as well
+        updateScalingGroups(data.scaling_groups); // added update call for scaling groups
+        updateVMList(data);
+    } catch (error) {
+        console.error('Error loading VMs:', error);
+    }
+}
+
+async function refreshPlacementInfo() {
+    try {
+        const response = await fetch('/vm/list');
+        const data = await response.json();
+        updatePlacementInfo(data.placement);
+        updateScalingGroups(data.scaling_groups); // added update call for scaling groups
+        updateVMList(data);
+
+    } catch (error) {
+        console.error('Error refreshing placement info:', error);
+    }
+}
+
+// Call refreshPlacementInfo when page is freshly loaded
+window.addEventListener("load", refreshPlacementInfo);
+
+setInterval(loadVMs, 5000); // execute loadVMs every 5 seconds
+
+function updateVMList(data) {
+    const vmList = document.getElementById('vmList');
+    vmList.innerHTML = '';
+
+    // Combine VMs from direct list and scaling groups
+    let allVMs = { ...data.vms };
+    if (data.scaling_groups) {
+        for (const group of Object.values(data.scaling_groups)) {
+            if (group.vms) {
+                allVMs = { ...allVMs, ...group.vms };
+            }
+        }
+    }
+
+    for (const [vmId, vmData] of Object.entries(allVMs)) {
+        const vmDiv = document.createElement('div');
+        vmDiv.className = 'flex items-center space-x-2 mb-2';
+
+        const vmButton = document.createElement('button');
+        vmButton.className = 'flex-grow text-left p-3 rounded bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors';
+        vmButton.innerHTML = `VM ${vmId}`;
+        vmButton.onclick = () => showVMDetails(vmId, vmData);
+
+        const vmLink = document.createElement('a');
+        const numericVmId = vmId.replace(/\D/g, '');
+        vmLink.href = `http://localhost:4${numericVmId}`;
+        vmLink.target = '_blank';
+        vmLink.className = 'p-3 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors';
+        vmLink.innerHTML = 'Open VM';
+
+        vmDiv.appendChild(vmButton);
+        vmDiv.appendChild(vmLink);
+        vmList.appendChild(vmDiv);
+    }
+}
+
+function updatePlacementInfo(placement) {
+    const placementInfo = document.getElementById('placementInfo');
+    placementInfo.innerHTML = '';
+    
+    for (const [host, vms] of Object.entries(placement)) {
+        const hostDiv = document.createElement('div');
+        hostDiv.className = 'mb-3';
+        hostDiv.innerHTML = `
+            <h3 class="font-semibold">${host}</h3>
+            <ul class="list-disc ml-4">
+                ${vms.map(vm => `<li>${vm}</li>`).join('')}
+            </ul>
+        `;
+        placementInfo.appendChild(hostDiv);
+    }
+}
+
+function updateScalingGroups(scalingGroups) {
+    const scalingGroupsList = document.getElementById('scalingGroupsList');
+    scalingGroupsList.innerHTML = '';
+    for (const [groupId, groupData] of Object.entries(scalingGroups || {})) {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'bg-gray-700 p-4 rounded-lg mb-2';
+        groupDiv.innerHTML = `
+            <h3 class="font-semibold text-gray-100">Autoscaling Group ${groupId}</h3>
+            <p class="text-gray-100">Min Instances: ${groupData.config.min_instances}, Max Instances: ${groupData.config.max_instances}</p>
+            <p class="text-gray-100">Template: CPU ${groupData.config.vm_template.cpu} cores, Memory ${(groupData.config.vm_template.mem / 1024).toFixed(1)}GB, Disk ${groupData.config.vm_template.disk}GB</p>
+            <p class="text-gray-100">Current Instances:</p>
+            <ul class="list-disc ml-4 text-gray-100">
+                ${groupData.config.current_instances.map(vmId => `<li>${vmId}</li>`).join('')}
+            </ul>
+        `;
+        scalingGroupsList.appendChild(groupDiv);
+    }
+}
+
+function showVMDetails(vmId, vmData) {
+    const vmDetails = document.getElementById('vmDetails');
+    vmDetails.innerHTML = `
+        <h3 class="font-semibold mb-2">VM ${vmId}</h3>
+        <div class="space-y-2">
+            <p>CPU: ${vmData.cpu} cores</p>
+            <p>RAM: ${vmData.ram} GB</p>
+        </div>
+    `;
+}
+
+async function submitForm(data) {
+    try {
+        const response = await fetch('/vm/createMachine', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create machine. Please try again.');
+    }
+}
+
+document.getElementById('createVMForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        type: 'virtual',
+        cpu: parseInt(formData.get('cpu')), // Convert GB to MB
+        mem: parseInt(formData.get('mem')) * 1024, // Convert GB to MB
+        disk: parseInt(formData.get('disk'))
+    };
+
+    try {
+        const response = await fetch('/vm/createMachine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            closeModal(); // Added missing parentheses
+            loadVMs(); // Refresh VM list
+        } else {
+            alert(result.message || 'Failed to create VM');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create VM. Please try again.');
+    }
+});
+
+document.getElementById('createScalingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        min_instance_count: parseInt(formData.get('min_instance_count')),
+        max_instance_count: parseInt(formData.get('max_instance_count')),
+        cpu: parseInt(formData.get('cpu')), // Convert GB to MB
+        mem: parseInt(formData.get('mem')) * 1024, // Convert GB to MB
+        disk: parseInt(formData.get('disk'))
+    };
+
+    try {
+        const response = await fetch('/vm/createAutoscalingGroup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            closeScalingModal(); // Fixed incorrect function call
+            loadVMs(); // Refresh VM list
+            alert(`Autoscaling group created with ID: ${result.gid}`);
+        } else {
+            alert(result.message || 'Failed to create autoscaling group');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create autoscaling group. Please try again.');
+    }
+});
+
+</script>
+{% endblock %}

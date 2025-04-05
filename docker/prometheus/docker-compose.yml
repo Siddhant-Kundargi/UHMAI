@@ -1,0 +1,9 @@
+services:
+  prometheus:
+    image: prom/prometheus:main
+    ports:
+      - 9090:9090
+    volumes:
+      - type: bind
+        source: ./prometheus.yml
+        target: /etc/prometheus/prometheus.yml

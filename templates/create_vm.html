@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
+    <div class="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div class="relative px-4 py-10 bg-gray-800 shadow-lg sm:rounded-3xl sm:p-10">
+            <div class="max-w-md mx-auto">
+                <div class="divide-y divide-gray-700">
+                    <div class="py-8 text-base leading-6 space-y-4 text-gray-100 sm:text-lg sm:leading-7">
+                        <h2 class="text-2xl font-bold mb-8">Create New Virtual Machine</h2>
+                        <form id="createVMForm" class="space-y-6">
+                            <div class="space-y-2">
+                                <label for="name" class="text-gray-300">VM Name</label>
+                                <input type="text" id="name" name="name" required
+                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="cpu" class="text-gray-300">CPU Cores</label>
+                                <input type="number" id="cpu" name="cpu" min="1" required
+                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="mem" class="text-gray-300">Memory (GB)</label>
+                                <input type="number" id="mem" name="mem" min="1" required
+                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="space-y-2">
+                                <label for="disk" class="text-gray-300">Disk (GB)</label>
+                                <input type="number" id="disk" name="disk" min="1" required
+                                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="pt-4">
+                                <button type="submit"
+                                    class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Create VM
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('createVMForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('name').value,
+        cpu: parseInt(document.getElementById('cpu').value),
+        mem: parseInt(document.getElementById('mem').value),
+        disk: parseInt(document.getElementById('disk').value)
+    };
+
+    try {
+        const response = await fetch('/newMachine', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            window.location.href = '/dashboard';
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || 'Failed to create VM');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create VM. Please try again.');
+    }
+});
+</script>
+{% endblock %}
